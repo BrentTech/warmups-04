@@ -5,12 +5,12 @@ const superagent = require('superagent');
 // https://swapi.co/api/people
 let swPeople = [];
 
-let url = "https://swapi.co/api/people";
+let url = 'https://swapi.co/api/people';
 
 superagent.get(url)
   .then( (result) => {
     for(let i = 0; i < result.body.results.length; i++) {
-      swPeople.push(result.body.results[i])
+      swPeople.push(result.body.results[i]);
     }
     // console.log(swPeople);
   })
@@ -19,4 +19,4 @@ superagent.get(url)
     return acc;
   }, []));
 
-  // console.log(swPeople);
+// console.log(swPeople);

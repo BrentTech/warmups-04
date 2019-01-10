@@ -2,21 +2,49 @@
 
 const superagent = require('superagent');
 
-// https://swapi.co/api/people
-let swPeople = [];
+let fetchPeopleWithPromises = () => {
+  return superagent.get('https://swapi.co/api/people')
+    .then( response => {
+      return response.body.results.map((person) => {
+        return superagent.get(person.url);
+      });
+    })
+    .then( peoplePromises => {
+      return Promise.all(peoplePromises)
+        .then( people => {
+          let names = [];
+          for(let data of people) {
+            names.push(data.body.name);
+          }
+          return names;
+        });
+    })
+    .catch( console.error );
+};
 
-let url = 'https://swapi.co/api/people';
+let fetchPeopleWithAsync = async () => {
+  try {
+    let peopleSet = await superagent.get('https://swapi.co/api/people');
+    let people = (peopleSet.body && peopleSet.body.results) || [];
+    let peopleRequests = people.map( person => {
+      return superagent.get(person.url);
+    });
+    let swapiNames = await Promise.all(peopleRequests)
+      .then( people => {
+        let names = [];
+        for(let data of people) {
+          names.push(data.body.name);
+        }
+        return names;
+      });
+    return swapiNames;
+  }
+  catch( err ) { console.error(err); }
+};
 
-superagent.get(url)
-  .then( (result) => {
-    for(let i = 0; i < result.body.results.length; i++) {
-      swPeople.push(result.body.results[i]);
-    }
-    // console.log(swPeople);
-  })
-  .then( swPeople.reduce( (acc, val) => {
-    acc = acc + val.url;
-    return acc;
-  }, []));
 
-// console.log(swPeople);
+fetchPeopleWithPromises()
+  .then( people => console.log('Promise People', people));
+
+fetchPeopleWithAsync()
+  .then( names => console.log('Async Names', names))
